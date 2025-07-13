@@ -27,8 +27,8 @@ export const login = async (req: Request, res: Response) => {
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true, // обов'язково, якщо бекенд на HTTPS
+    sameSite: 'none', // дозволяє крос-доменні куки
     maxAge: 24 * 60 * 60 * 1000, // 1 день
   });
 
