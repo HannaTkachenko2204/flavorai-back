@@ -35,15 +35,31 @@ export const login = async (req: Request, res: Response) => {
   res.json({ token: accessToken, user: { id: user.id, email: user.email } });
 };
 
-export const refreshToken = (req: Request, res: Response) => {
+export const refreshToken = async (req: Request, res: Response) => {
   const token = req.cookies.refreshToken;
   if (!token) return res.status(401).json({ message: 'No refresh token' });
 
   try {
     const payload = verifyRefreshToken(token);
-    const accessToken = generateAccessToken(payload.userId);
-    res.json({ token: accessToken });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (!user) return res.status(401).json({ message: 'User not found' });
+
+    const accessToken = generateAccessToken(user.id);
+
+    res.json({
+      token: accessToken,
+      user: { id: user.id, email: user.email },
+    });
   } catch {
     res.status(401).json({ message: 'Invalid refresh token' });
   }
+};
+
+export const logout = (req: Request, res: Response) => {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+  });
+  res.json({ message: 'Logged out' });
 };
