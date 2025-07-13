@@ -1,9 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { verifyAccessToken } from '../utils/jwtUtils';
 
-const JWT_SECRET = process.env.JWT_SECRET || '';
-
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   userId?: number;
 }
 
@@ -13,7 +11,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
 
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    const decoded = verifyAccessToken(token);
     req.userId = decoded.userId;
     next();
   } catch {

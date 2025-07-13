@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import prisma from '../prismaClient';
-import { generateAccessToken, generateRefreshToken, verifyToken } from '../utils/jwtUtils';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwtUtils';
 
 export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -29,7 +29,7 @@ export const login = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 24 * 60 * 60 * 1000, // 1 день
   });
 
   res.json({ token: accessToken, user: { id: user.id, email: user.email } });
@@ -40,7 +40,7 @@ export const refreshToken = (req: Request, res: Response) => {
   if (!token) return res.status(401).json({ message: 'No refresh token' });
 
   try {
-    const payload = verifyToken(token);
+    const payload = verifyRefreshToken(token);
     const accessToken = generateAccessToken(payload.userId);
     res.json({ token: accessToken });
   } catch {
